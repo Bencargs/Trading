@@ -6,10 +6,11 @@ using System.Web;
 
 namespace Contracts.Providers
 {
-    public interface IOrdersProvider
+    public interface IOrderProvider
     {
-        Order[] GetSellOrders(Stock stock, int count);
-        Order AddBuyOrder(User user, Stock stock, int count);
+        Order[] GetSellOrders(Stock stock, int quantity);
+        Order AddBuyOrder(User user, Stock stock, int quantity);
+        Order AddSellOrder(User user, Stock stock, int quantity);
         void RemoveOrders(Order[] orders);
     }
 }

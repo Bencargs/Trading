@@ -7,5 +7,6 @@ namespace Contracts.Models
 {
     public class Stock
     {
+        public string Ticker {get; set;}
     }
 }
