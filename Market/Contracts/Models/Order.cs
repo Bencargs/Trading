@@ -7,6 +7,7 @@ namespace Contracts.Models
 {
     public class Order
     {
+        public Guid OrderId { get; set; }
         public User Owner { get; set; }
         public Stock Stock { get; set; }
         public OrderDirection Direction { get; set; }

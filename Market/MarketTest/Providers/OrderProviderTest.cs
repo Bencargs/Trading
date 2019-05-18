@@ -31,45 +31,94 @@ namespace MarketTest.Providers
         [TestMethod]
         public void GetSellOrdersTest_OrderCount()
         {
-            var quantity = 10;
-            _provider.AddSellOrder(_user, _stock, quantity);
+            _provider.AddSellOrder(_user, _stock, 1, 1m);
+            _provider.AddSellOrder(_user, _stock, 1, 1m);
 
-            var actual = _provider.GetSellOrders(_stock, quantity);
+            var actual = _provider.GetSellOrders(_stock);
 
-            Assert.AreEqual(1, actual.Count());
+            Assert.AreEqual(2, actual.Count());
         }
 
         [TestMethod]
         public void GetSellOrdersTest_CorrectStock()
         {
-            var quantity = 10;
-            _provider.AddSellOrder(_user, _stock, quantity);
+            _provider.AddSellOrder(_user, _stock, 1, 1m);
+            _provider.AddSellOrder(_user, new Stock { Ticker = "XYZ" }, 1, 1m);
 
-            var actual = _provider.GetSellOrders(_stock, quantity);
+            var actual = _provider.GetSellOrders(_stock);
 
-            Assert.AreEqual(_stock, actual[0].Stock);
-        }
-
-        [TestMethod]
-        public void GetSellOrdersTest_CorrectCount()
-        {
-            var quantity = 10;
-            _provider.AddSellOrder(_user, _stock, quantity);
-
-            var actual = _provider.GetSellOrders(_stock, quantity);
-
-            Assert.AreEqual(quantity, actual[0].Quantity);
+            Assert.IsTrue(actual.All(x => x.Stock == _stock));
         }
 
         [TestMethod]
         public void GetSellOrdersTest_CorrectDirection()
         {
-            var quantity = 10;
-            _provider.AddSellOrder(_user, _stock, quantity);
+            _provider.AddSellOrder(_user, _stock, 1, 1m);
+            _provider.AddBuyOrder(_user, _stock, 1, 1m);
 
-            var actual = _provider.GetSellOrders(_stock, quantity);
+            var actual = _provider.GetSellOrders(_stock);
 
-            Assert.AreEqual(OrderDirection.Sell, actual[0].Direction);
+            Assert.IsTrue(actual.All(x => x.Direction == OrderDirection.Sell));
+        }
+
+        [TestMethod]
+        public void UpdateOrdersTest_Sell()
+        {
+            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            var order = _provider.GetSellOrders(_stock);
+            _provider.UpdateOrders(new[]
+            {
+                new FillDetail
+                {
+                    OrderId = order[0].OrderId,
+                    Stock = _stock,
+                    Quantity = 7,
+                }
+            });
+
+            var actual = _provider.GetSellOrders(_stock);
+
+            Assert.AreEqual(3, actual.Sum(x => x.Quantity));
+        }
+
+        [TestMethod]
+        public void UpdateOrdersTest_SellNoQuantity()
+        {
+            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            var order = _provider.GetSellOrders(_stock);
+            _provider.UpdateOrders(new[]
+            {
+                new FillDetail
+                {
+                    OrderId = order[0].OrderId,
+                    Stock = _stock,
+                    Quantity = 0,
+                }
+            });
+
+            var actual = _provider.GetSellOrders(_stock);
+
+            Assert.AreEqual(10, actual.Sum(x => x.Quantity));
+        }
+
+        [TestMethod]
+        public void UpdateOrdersTest_SellOrderFilled()
+        {
+            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            var order = _provider.GetSellOrders(_stock);
+            _provider.UpdateOrders(new[]
+            {
+                new FillDetail
+                {
+                    OrderId = order[0].OrderId,
+                    Stock = _stock,
+                    Quantity = 10,
+                }
+            });
+
+            var actual = _provider.GetSellOrders(_stock);
+
+            Assert.AreEqual(0, actual.Sum(x => x.Quantity));
         }
     }
 }

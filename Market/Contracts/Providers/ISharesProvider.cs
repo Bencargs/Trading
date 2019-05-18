@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Contracts.Models;
 
 namespace Contracts.Providers
 {
     public interface ISharesProvider
     {
+        decimal GetLastPrice(Stock stock);
+        void UpdateLastPrice(Stock stock, decimal price);
     }
 }

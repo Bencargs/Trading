@@ -3,50 +3,90 @@ using Contracts.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace Market.Providers
 {
     public class OrderProvider : IOrderProvider
     {
         private List<Order> _sellOrders = new List<Order>();
+        private List<Order> _buyOrders = new List<Order>();
 
-        public Order AddBuyOrder(User user, Stock stock, int quantity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Order AddSellOrder(User user, Stock stock, int quantity)
+        public Order AddBuyOrder(User user, Stock stock, int quantity, decimal? price = null)
         {
             var order = new Order
             {
+                OrderId = Guid.NewGuid(),
+                Owner = user,
+                Stock = stock,
+                Direction = OrderDirection.Buy,
+                Type = OrderType.Market,
+                Quantity = quantity,
+                Price = price
+            };
+            _buyOrders.Add(order);
+            return order;
+        }
+
+        public Order AddSellOrder(User user, Stock stock, int quantity, decimal? price = null)
+        {
+            var order = new Order
+            {
+                OrderId = Guid.NewGuid(),
                 Owner = user,
                 Stock = stock,
                 Direction = OrderDirection.Sell,
                 Type = OrderType.Market,
                 Quantity = quantity,
-                Price = null
+                Price = price
             };
             _sellOrders.Add(order);
             return order;
         }
-
-        public Order[] GetSellOrders(Stock stock, int quantity)
+        
+        public Order[] GetSellOrders(Stock stock)
         {
-            int sumQuantity = 0;
-            var returnOrders = new List<Order>();
-            var sellOrders = _sellOrders.Where(x => x.Stock == stock).OrderBy(x => x.Price).ToArray();
-            for (int i = 0; i < sellOrders.Count() && sumQuantity <= quantity; i++)
-            {
-                sumQuantity += sellOrders[i].Quantity;
-                returnOrders.Add(sellOrders[i]);
-            }
-            return returnOrders.ToArray();
+            return _sellOrders
+                .Where(x => x.Stock == stock)
+                .OrderBy(x => x.Price)
+                .ToArray();
         }
 
-        public void RemoveOrders(Order[] orders)
+        public void UpdateOrders(FillDetail[] fills)
         {
-            throw new NotImplementedException();
+            foreach (var f in fills)
+            {
+                if (f.Quantity == 0)
+                    continue;
+
+                var order = _sellOrders.SingleOrDefault(x => x.OrderId == f.OrderId);
+                if (order != null)
+                {
+                    if (f.Quantity == order.Quantity)
+                    {
+                        _sellOrders.Remove(order);
+                    }
+                    else
+                    {
+                        order.Quantity -= f.Quantity;
+                    }
+                }
+                else
+                {
+                    order = _buyOrders.Single(x => x.OrderId == f.OrderId);
+                    if (f.Quantity == order.Quantity)
+                    {
+                        _buyOrders.Remove(order);
+                    }
+                    else
+                    {
+                        order.Quantity -= f.Quantity;
+                    }
+                }
+
+                // find matching order via orderId
+                // subtract quantity from order
+                // if quantity == 0 - remove order
+            }
         }
     }
 }

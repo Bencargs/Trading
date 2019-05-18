@@ -1,8 +1,8 @@
 ﻿using Contracts.Models;
 using Contracts.Providers;
 using Contracts.Responses;
+using System.Collections.Generic;
 using System.Linq;
-using FailureReason = Contracts.Responses.BuyOrderFailedResponse.FailureReason;
 
 namespace Market.Services
 {
@@ -11,40 +11,65 @@ namespace Market.Services
         private readonly IOrderProvider _ordersProvider;
         private readonly IHoldingsProvider _holdingsProvider;
         private readonly IBankingProvider _bankingProvider;
+        private readonly ISharesProvider _sharesProvider;
 
         public Market(
             IOrderProvider ordersProvider,
             IHoldingsProvider holdingsProvider,
-            IBankingProvider bankingProvider)
+            IBankingProvider bankingProvider,
+            ISharesProvider sharesProvider)
         {
             _ordersProvider = ordersProvider;
             _holdingsProvider = holdingsProvider;
             _bankingProvider = bankingProvider;
+            _sharesProvider = sharesProvider;
         }
 
-        public IResponse MarketBuy(User user, Stock stock, int quantity)
+        public IResponse MarketBuy(User user, Stock stock, decimal funds)
         {
-            var orders = _ordersProvider.GetSellOrders(stock, quantity);
-            var bankAccount = _bankingProvider.GetAccount(user);
-            if (orders.Sum(x => x.Price) > bankAccount.Balance)
-                return new BuyOrderFailedResponse { Reason = FailureReason.InsufficientFunds };
+            var fills = GetBuyOrderFills(stock, funds);
 
-            _holdingsProvider.TransferHoldingsToUser(user, orders);
-            _bankingProvider.TransferFundsToHolders(bankAccount, orders);
-            _ordersProvider.RemoveOrders(orders);
+            _holdingsProvider.TransferHoldingsToUser(user, fills);
+            _bankingProvider.TransferFundsToHolders(user, fills);
+            _ordersProvider.UpdateOrders(fills);
 
-            Order unfilledOrder = null;
-            var unfilled = quantity - orders.Count();
-            if (unfilled > 0)
-            {
-                unfilledOrder = _ordersProvider.AddBuyOrder(user, stock, unfilled);
-            }
+            var minPrice = fills.Max(x => x.Price);
+            _sharesProvider.UpdateLastPrice(stock, minPrice);
 
+            var unfilled = funds - fills.Sum(x => x.Price * x.Quantity);
             return new BuyOrderResponse
             {
-                Filled = orders,
-                Unfilled = unfilledOrder
+                Filled = fills,
+                Unfilled = unfilled
             };
+        }
+
+        private FillDetail[] GetBuyOrderFills(Stock stock, decimal funds)
+        {
+            var cost = 0m;
+            var returnOrders = new List<FillDetail>();
+            foreach (var o in _ordersProvider.GetSellOrders(stock))
+            {
+                var fill = new FillDetail
+                {
+                    OrderId = o.OrderId,
+                    Owner = o.Owner,
+                    Stock = o.Stock,
+                    Quantity = 0,
+                    Price = o.Price ?? _sharesProvider.GetLastPrice(stock)
+                };
+                returnOrders.Add(fill);
+
+                for (int i = 0; i < o.Quantity; i++)
+                {
+                    if (cost > funds)
+                        return returnOrders.ToArray();
+
+                    fill.Quantity++;
+                    cost += fill.Price;
+                }
+            }
+            return returnOrders.ToArray();
         }
     }
 }
