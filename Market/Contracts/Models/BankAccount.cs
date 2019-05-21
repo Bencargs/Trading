@@ -7,6 +7,7 @@ namespace Contracts.Models
 {
     public class BankAccount
     {
+        public Guid BankAccountId { get; set; }
         public decimal Balance { get; set; }
     }
 }

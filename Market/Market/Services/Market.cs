@@ -27,6 +27,13 @@ namespace Market.Services
 
         public IResponse MarketBuy(User user, Stock stock, decimal funds)
         {
+            var account = _bankingProvider.GetAccount(user);
+            if (account.Balance < funds)
+                return new BuyOrderFailedResponse
+                {
+                    Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds
+                };
+
             var fills = GetBuyOrderFills(stock, funds);
 
             _holdingsProvider.TransferHoldingsToUser(user, fills);

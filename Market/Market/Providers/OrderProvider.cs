@@ -82,10 +82,6 @@ namespace Market.Providers
                         order.Quantity -= f.Quantity;
                     }
                 }
-
-                // find matching order via orderId
-                // subtract quantity from order
-                // if quantity == 0 - remove order
             }
         }
     }

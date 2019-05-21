@@ -1,13 +1,11 @@
 ﻿using Contracts.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace Contracts.Providers
 {
     public interface IBankingProvider
     {
+        void CreateAccount(User user);
+        void AddFunds(User user, decimal funds);
         BankAccount GetAccount(User user);
 
         /// <summary>
