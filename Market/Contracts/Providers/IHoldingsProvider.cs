@@ -9,6 +9,10 @@ namespace Contracts.Providers
 {
     public interface IHoldingsProvider
     {
+        void CreateUser(User user);
+        void AddHolding(User user, Stock stock, int quantity);
+        int GetHolding(User user, Stock stock);
+
         /// <summary>
         /// Move all holdings in orders to users name
         /// </summary>

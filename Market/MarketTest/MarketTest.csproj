@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Providers\BankingProviderTest.cs" />
+    <Compile Include="Providers\HoldingsProviderTest.cs" />
     <Compile Include="Providers\OrderProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
