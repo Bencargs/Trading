@@ -54,7 +54,7 @@ namespace MarketTest.Providers
         public void GetSellOrdersTest_CorrectDirection()
         {
             _provider.AddSellOrder(_user, _stock, 1, 1m);
-            _provider.AddBuyOrder(_user, _stock, 1, 1m);
+            _provider.AddBuyOrder(_user, _stock, 1m);
 
             var actual = _provider.GetSellOrders(_stock);
 

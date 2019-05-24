@@ -35,15 +35,22 @@ namespace Market.Services
                 };
 
             var fills = GetBuyOrderFills(stock, funds);
+            if (fills.Any())
+            {
+                _holdingsProvider.TransferHoldingsToUser(user, fills);
+                _bankingProvider.TransferFundsToHolders(user, fills);
+                _ordersProvider.UpdateOrders(fills);
 
-            _holdingsProvider.TransferHoldingsToUser(user, fills);
-            _bankingProvider.TransferFundsToHolders(user, fills);
-            _ordersProvider.UpdateOrders(fills);
-
-            var minPrice = fills.Max(x => x.Price);
-            _sharesProvider.UpdateLastPrice(stock, minPrice);
+                var minPrice = fills.Max(x => x.Price);
+                _sharesProvider.UpdateLastPrice(stock, minPrice);
+            }
 
             var unfilled = funds - fills.Sum(x => x.Price * x.Quantity);
+            if (unfilled > 0)
+            {
+                _ordersProvider.AddBuyOrder(user, stock, unfilled);
+            }
+
             return new BuyOrderResponse
             {
                 Filled = fills,
@@ -69,7 +76,7 @@ namespace Market.Services
 
                 for (int i = 0; i < o.Quantity; i++)
                 {
-                    if (cost > funds)
+                    if (cost >= funds)
                         return returnOrders.ToArray();
 
                     fill.Quantity++;

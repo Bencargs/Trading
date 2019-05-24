@@ -12,7 +12,7 @@ namespace Contracts.Responses
         {
             None = 0,
             OrderDirection,
-            InsufficientFunds,
+            InsufficientFunds
         }
     }
 }
