@@ -11,7 +11,7 @@ namespace Market.Providers
         private List<Order> _sellOrders = new List<Order>();
         private List<Order> _buyOrders = new List<Order>();
 
-        public Order AddBuyOrder(User user, Stock stock, decimal price)
+        public Order AddBuyOrder(User user, Stock stock, int quantity)
         {
             var order = new Order
             {
@@ -20,14 +20,14 @@ namespace Market.Providers
                 Stock = stock,
                 Direction = OrderDirection.Buy,
                 Type = OrderType.Market,
-                Quantity = null,
-                Price = price
+                Quantity = quantity,
+                Price = null
             };
             _buyOrders.Add(order);
             return order;
         }
 
-        public Order AddSellOrder(User user, Stock stock, int quantity, decimal? price = null)
+        public Order AddSellOrder(User user, Stock stock, int quantity)
         {
             var order = new Order
             {
@@ -37,7 +37,7 @@ namespace Market.Providers
                 Direction = OrderDirection.Sell,
                 Type = OrderType.Market,
                 Quantity = quantity,
-                Price = price
+                Price = null
             };
             _sellOrders.Add(order);
             return order;

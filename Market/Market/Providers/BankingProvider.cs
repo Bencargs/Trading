@@ -39,5 +39,18 @@ namespace Market.Providers
                 holderAccount.Balance += cost;
             }
         }
+
+        public void TransferFundsFromHolders(User user, FillDetail[] fills)
+        {
+            var userAccount = _accounts[user];
+            foreach (var f in fills)
+            {
+                var holderAccount = _accounts[f.Owner];
+
+                var cost = f.Price * f.Quantity;
+                userAccount.Balance += cost;
+                holderAccount.Balance -= cost;
+            }
+        }
     }
 }

@@ -19,5 +19,6 @@ namespace Contracts.Providers
         /// <param name="user"></param>
         /// <param name="orders"></param>
         void TransferHoldingsToUser(User user, FillDetail[] fills);
+        void TransferHoldingsFromUser(User user, FillDetail[] fills);
     }
 }

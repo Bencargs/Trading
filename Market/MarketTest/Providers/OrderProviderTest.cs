@@ -31,8 +31,8 @@ namespace MarketTest.Providers
         [TestMethod]
         public void GetSellOrdersTest_OrderCount()
         {
-            _provider.AddSellOrder(_user, _stock, 1, 1m);
-            _provider.AddSellOrder(_user, _stock, 1, 1m);
+            _provider.AddSellOrder(_user, _stock, 1);
+            _provider.AddSellOrder(_user, _stock, 1);
 
             var actual = _provider.GetSellOrders(_stock);
 
@@ -42,8 +42,8 @@ namespace MarketTest.Providers
         [TestMethod]
         public void GetSellOrdersTest_CorrectStock()
         {
-            _provider.AddSellOrder(_user, _stock, 1, 1m);
-            _provider.AddSellOrder(_user, new Stock { Ticker = "XYZ" }, 1, 1m);
+            _provider.AddSellOrder(_user, _stock, 1);
+            _provider.AddSellOrder(_user, new Stock { Ticker = "XYZ" }, 1);
 
             var actual = _provider.GetSellOrders(_stock);
 
@@ -53,8 +53,8 @@ namespace MarketTest.Providers
         [TestMethod]
         public void GetSellOrdersTest_CorrectDirection()
         {
-            _provider.AddSellOrder(_user, _stock, 1, 1m);
-            _provider.AddBuyOrder(_user, _stock, 1m);
+            _provider.AddSellOrder(_user, _stock, 1);
+            _provider.AddBuyOrder(_user, _stock, 1);
 
             var actual = _provider.GetSellOrders(_stock);
 
@@ -64,7 +64,7 @@ namespace MarketTest.Providers
         [TestMethod]
         public void UpdateOrdersTest_Sell()
         {
-            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            _provider.AddSellOrder(_user, _stock, 10);
             var order = _provider.GetSellOrders(_stock);
             _provider.UpdateOrders(new[]
             {
@@ -84,7 +84,7 @@ namespace MarketTest.Providers
         [TestMethod]
         public void UpdateOrdersTest_SellNoQuantity()
         {
-            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            _provider.AddSellOrder(_user, _stock, 10);
             var order = _provider.GetSellOrders(_stock);
             _provider.UpdateOrders(new[]
             {
@@ -104,7 +104,7 @@ namespace MarketTest.Providers
         [TestMethod]
         public void UpdateOrdersTest_SellOrderFilled()
         {
-            _provider.AddSellOrder(_user, _stock, 10, 1m);
+            _provider.AddSellOrder(_user, _stock, 10);
             var order = _provider.GetSellOrders(_stock);
             _provider.UpdateOrders(new[]
             {

@@ -40,5 +40,21 @@ namespace Market.Providers
                     userHoldings.Add(f.Stock, f.Quantity);
             }
         }
+
+        public void TransferHoldingsFromUser(User user, FillDetail[] fills)
+        {
+            var userHoldings = _holdings[user];
+            foreach (var f in fills)
+            {
+                userHoldings[f.Stock] -= f.Quantity;
+
+                var fillHoldings = _holdings[f.Owner];
+
+                if (fillHoldings.ContainsKey(f.Stock))
+                    fillHoldings[f.Stock] += f.Quantity;
+                else
+                    fillHoldings.Add(f.Stock, f.Quantity);
+            }
+        }
     }
 }

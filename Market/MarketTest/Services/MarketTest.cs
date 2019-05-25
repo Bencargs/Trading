@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MarketTest.Services
 {
@@ -25,12 +26,12 @@ namespace MarketTest.Services
                 {
                     { _stock, 20 }
                 },
-                sellOrders: new Dictionary<Stock, OrderProxy>
+                sellOrders: new Dictionary<Stock, int>
                 {
-                    { _stock, new OrderProxy { Quantity = 20, Price = 10m } }
+                    { _stock, 10 }
                 });
 
-            Market.MarketBuy(_user, _stock, 100m);
+            Market.MarketBuy(_user, _stock, 100);
 
             Assert.AreEqual(900m, Resolve<IBankingProvider>().GetAccount(_user).Balance);
             Assert.AreEqual(100m, Resolve<IBankingProvider>().GetAccount(seller).Balance);
@@ -47,12 +48,12 @@ namespace MarketTest.Services
                 {
                     { _stock, 20 }
                 },
-                sellOrders: new Dictionary<Stock, OrderProxy>
+                sellOrders: new Dictionary<Stock, int>
                 {
-                    { _stock, new OrderProxy { Quantity = 20, Price = 10m } }
+                    { _stock, 10 }
                 });
 
-            Market.MarketBuy(_user, _stock, 100m);
+            Market.MarketBuy(_user, _stock, 100);
 
             Assert.AreEqual(10, Resolve<IHoldingsProvider>().GetHolding(_user, _stock));
             Assert.AreEqual(10, Resolve<IHoldingsProvider>().GetHolding(seller, _stock));
@@ -69,14 +70,14 @@ namespace MarketTest.Services
                 {
                     { _stock, 20 }
                 },
-                sellOrders: new Dictionary<Stock, OrderProxy>
+                sellOrders: new Dictionary<Stock, int>
                 {
-                    { _stock, new OrderProxy { Quantity = 20, Price = null } }
+                    { _stock, 20 }
                 });
 
-            Market.MarketBuy(_user, _stock, 100m);
+            Market.MarketBuy(_user, _stock, 100);
 
-            Assert.AreEqual(900m, Resolve<IBankingProvider>().GetAccount(_user).Balance);
+            Assert.AreEqual(800m, Resolve<IBankingProvider>().GetAccount(_user).Balance);
         }
 
         [TestMethod]
@@ -90,12 +91,12 @@ namespace MarketTest.Services
                 {
                     { _stock, 5 }
                 },
-                sellOrders: new Dictionary<Stock, OrderProxy>
+                sellOrders: new Dictionary<Stock, int>
                 {
-                    { _stock, new OrderProxy { Quantity = 5 } }
+                    { _stock, 5 }
                 });
 
-            Market.MarketBuy(_user, _stock, 100m);
+            Market.MarketBuy(_user, _stock, 100);
 
             var expected = Resolve<IOrderProvider>().GetBuyOrders(_stock);
             expected.Should().BeEquivalentTo(
@@ -104,8 +105,8 @@ namespace MarketTest.Services
                     Direction = OrderDirection.Buy,
                     Type = OrderType.Market,
                     Owner = _user,
-                    Price = 50m,
-                    Stock = _stock
+                    Stock = _stock,
+                    Quantity = 95,
                 });
         }
 
@@ -114,8 +115,17 @@ namespace MarketTest.Services
         {
             RegisterShares(_stock, 10m);
             RegisterUser(_user, 10m);
+            RegisterUser(new User { UserId = Guid.NewGuid() }, 0m,
+                holdings: new Dictionary<Stock, int>
+                {
+                    { _stock, 100 }
+                },
+                sellOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 100 }
+                });
 
-            var response = Market.MarketBuy(_user, _stock, 100m);
+            var response = Market.MarketBuy(_user, _stock, 100);
 
             Assert.AreEqual(
                 BuyOrderFailedResponse.FailureReason.InsufficientFunds,
@@ -128,14 +138,134 @@ namespace MarketTest.Services
             RegisterShares(_stock, 10m);
             RegisterUser(_user, 100m);
 
-            var response = Market.MarketBuy(_user, _stock, 100m);
+            var response = Market.MarketBuy(_user, _stock, 10);
 
             response.Should().BeEquivalentTo(
                 new BuyOrderResponse
                 {
                     Filled = new FillDetail[0],
-                    Unfilled = 100m
+                    Unfilled = 10
                 });
+        }
+
+        [TestMethod]
+        public void MarketSellTest_InsufficientHoldings()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 100m);
+
+            var response = Market.MarketSell(_user, _stock, 10);
+
+            response.Should().BeEquivalentTo(
+                new SellOrderFailedResponse
+                {
+                    Reason = SellOrderFailedResponse.FailureReason.InsufficientHoldings
+                });
+        }
+
+        [TestMethod]
+        public void MarketSellTest_NoBuyers()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 100m, new Dictionary<Stock, int>
+            {
+                {_stock, 10 }
+            });
+
+            var response = Market.MarketSell(_user, _stock, 10);
+
+            response.Should().BeEquivalentTo(
+                new SellOrderResponse
+                {
+                    Filled = new FillDetail[0],
+                    Unfilled = 10
+                });
+        }
+
+        [TestMethod]
+        public void MarketSellTest_CorrectHoldingsAllocated()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 1000m, new Dictionary<Stock, int>
+            {
+                {_stock, 10 }
+            });
+            var buyer = new User { UserId = Guid.NewGuid() };
+            RegisterUser(buyer, 1000m,
+                buyOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 100 }
+                });
+
+            Market.MarketSell(_user, _stock, 10);
+
+            Assert.AreEqual(0, Resolve<IHoldingsProvider>().GetHolding(_user, _stock));
+            Assert.AreEqual(10, Resolve<IHoldingsProvider>().GetHolding(buyer, _stock));
+        }
+
+        [TestMethod]
+        public void MarketSellTest_CorrectFundsAllocated()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 0m, new Dictionary<Stock, int>
+            {
+                {_stock, 10 }
+            });
+            var buyer = new User { UserId = Guid.NewGuid() };
+            RegisterUser(buyer, 100m,
+                buyOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 10 }
+                });
+
+            Market.MarketSell(_user, _stock, 10);
+
+            Assert.AreEqual(100m, Resolve<IBankingProvider>().GetAccount(_user).Balance);
+            Assert.AreEqual(0m, Resolve<IBankingProvider>().GetAccount(buyer).Balance);
+        }
+
+        [TestMethod]
+        public void MarketSellTest_UnfilledOrder()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 100m, new Dictionary<Stock, int>
+            {
+                {_stock, 200 }
+            });
+            RegisterUser(new User { UserId = Guid.NewGuid() }, 100m,
+                buyOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 100 }
+                });
+            RegisterUser(new User { UserId = Guid.NewGuid() }, 100m,
+                buyOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 70 }
+                });
+
+            Market.MarketSell(_user, _stock, 200);
+
+            Assert.AreEqual(30, Resolve<IHoldingsProvider>().GetHolding(_user, _stock));
+            Assert.AreEqual(30, Resolve<IOrderProvider>().GetSellOrders(_stock).Sum(x => x.Quantity));
+        }
+
+        [TestMethod]
+        public void MarketSellTest_ExcessBuyOrders()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 100m, new Dictionary<Stock, int>
+            {
+                {_stock, 10 }
+            });
+            RegisterUser(new User { UserId = Guid.NewGuid() }, 100m,
+                buyOrders: new Dictionary<Stock, int>
+                {
+                    { _stock, 100 }
+                });
+
+            Market.MarketSell(_user, _stock, 10);
+
+            Assert.AreEqual(90, Resolve<IOrderProvider>().GetBuyOrders(_stock).Sum(x => x.Quantity));
         }
     }
 }

@@ -25,27 +25,28 @@ namespace Market.Services
             _sharesProvider = sharesProvider;
         }
 
-        public IResponse MarketBuy(User user, Stock stock, decimal funds)
+        public IResponse MarketBuy(User user, Stock stock, int quantity)
         {
-            var account = _bankingProvider.GetAccount(user);
-            if (account.Balance < funds)
-                return new BuyOrderFailedResponse
-                {
-                    Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds
-                };
-
-            var fills = GetBuyOrderFills(stock, funds);
+            var fills = GetOrderFills(OrderDirection.Buy, stock, quantity);
             if (fills.Any())
             {
+                var account = _bankingProvider.GetAccount(user);
+                var cost = fills.Sum(x => x.Price * x.Quantity);
+                if (account.Balance < cost)
+                    return new BuyOrderFailedResponse
+                    {
+                        Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds
+                    };
+
                 _holdingsProvider.TransferHoldingsToUser(user, fills);
                 _bankingProvider.TransferFundsToHolders(user, fills);
                 _ordersProvider.UpdateOrders(fills);
 
-                var minPrice = fills.Max(x => x.Price);
-                _sharesProvider.UpdateLastPrice(stock, minPrice);
+                //var minPrice = fills.Max(x => x.Price);
+                //_sharesProvider.UpdateLastPrice(stock, minPrice);
             }
 
-            var unfilled = funds - fills.Sum(x => x.Price * x.Quantity);
+            var unfilled = quantity - fills.Sum(x => x.Quantity);
             if (unfilled > 0)
             {
                 _ordersProvider.AddBuyOrder(user, stock, unfilled);
@@ -58,11 +59,50 @@ namespace Market.Services
             };
         }
 
-        private FillDetail[] GetBuyOrderFills(Stock stock, decimal funds)
+        public IResponse MarketSell(User user, Stock stock, int quantity)
         {
-            var cost = 0m;
-            var returnOrders = new List<FillDetail>();
-            foreach (var o in _ordersProvider.GetSellOrders(stock))
+            var holdings = _holdingsProvider.GetHolding(user, stock);
+            if (holdings < quantity)
+                return new SellOrderFailedResponse
+                {
+                    Reason = SellOrderFailedResponse.FailureReason.InsufficientHoldings
+                };
+
+            var fills = GetOrderFills(OrderDirection.Sell, stock, quantity);
+            if (fills.Any())
+            {
+                _holdingsProvider.TransferHoldingsFromUser(user, fills);
+                _bankingProvider.TransferFundsFromHolders(user, fills);
+                _ordersProvider.UpdateOrders(fills);
+
+            //    var minPrice = fills.Min(x => x.Price);
+            //    _sharesProvider.UpdateLastPrice(stock, minPrice);
+            }
+
+            var unfilled = quantity - fills.Sum(x => x.Quantity);
+            if (unfilled > 0)
+            {
+                _ordersProvider.AddSellOrder(user, stock, unfilled);
+            }
+
+            return new BuyOrderResponse
+            {
+                Filled = fills,
+                Unfilled = unfilled
+            };
+        }
+
+        private FillDetail[] GetOrderFills(OrderDirection direction, Stock stock, int quantity)
+        {
+            //var cost = 0m;
+            var totalFilled = 0;
+            var filledOrders = new List<FillDetail>();
+
+            var orders = direction == OrderDirection.Buy
+                ? _ordersProvider.GetSellOrders(stock)
+                : _ordersProvider.GetBuyOrders(stock);
+
+            foreach (var o in orders)
             {
                 var fill = new FillDetail
                 {
@@ -72,18 +112,18 @@ namespace Market.Services
                     Quantity = 0,
                     Price = o.Price ?? _sharesProvider.GetLastPrice(stock)
                 };
-                returnOrders.Add(fill);
+                filledOrders.Add(fill);
 
-                for (int i = 0; i < o.Quantity; i++)
+                for (int i = 0; i < o.Quantity && totalFilled < quantity; i++)
                 {
-                    if (cost >= funds)
-                        return returnOrders.ToArray();
+                    //if (totalFilled >= quantity)
+                    //    return filledOrders.ToArray();
 
                     fill.Quantity++;
-                    cost += fill.Price;
+                    totalFilled++;
                 }
             }
-            return returnOrders.ToArray();
+            return filledOrders.ToArray();
         }
     }
 }

@@ -41,17 +41,12 @@ namespace MarketTest
                 sharesProvider);
         }
 
-        public class OrderProxy
-        {
-            public int Quantity { get; set; }
-            public decimal? Price { get; set; }
-        }
-
         protected void RegisterUser(
                 User user,
                 decimal? funds = null,
                 Dictionary<Stock, int> holdings = null,
-                Dictionary<Stock, OrderProxy> sellOrders = null)
+                Dictionary<Stock, int> sellOrders = null,
+                Dictionary<Stock, int> buyOrders = null)
         {
             var bankingProvider = Resolve<IBankingProvider>();
             bankingProvider.CreateAccount(user);
@@ -69,7 +64,12 @@ namespace MarketTest
             if (sellOrders != null)
             {
                 foreach (var s in sellOrders)
-                    orderProvider.AddSellOrder(user, s.Key, s.Value.Quantity, s.Value.Price);
+                    orderProvider.AddSellOrder(user, s.Key, s.Value);
+            }
+            if (buyOrders != null)
+            {
+                foreach (var b in buyOrders)
+                    orderProvider.AddBuyOrder(user, b.Key, b.Value);
             }
         }
 
