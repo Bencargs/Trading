@@ -5,9 +5,11 @@ VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Market", "Market\Market.csproj", "{B373B904-AC01-4500-9F86-EAF7B10A3D96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketTest", "MarketTest\MarketTest.csproj", "{F1A4F139-FC79-4AB7-A90A-A9AB8C41443D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExchangeTests", "MarketTest\ExchangeTests.csproj", "{F1A4F139-FC79-4AB7-A90A-A9AB8C41443D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Contracts.csproj", "{AFCA86C9-F21B-4273-A879-33C6AF58B3DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange", "Exchange\Exchange.csproj", "{E659AB45-FD18-4490-95FC-C1B58A06620D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{AFCA86C9-F21B-4273-A879-33C6AF58B3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFCA86C9-F21B-4273-A879-33C6AF58B3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFCA86C9-F21B-4273-A879-33C6AF58B3DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E659AB45-FD18-4490-95FC-C1B58A06620D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E659AB45-FD18-4490-95FC-C1B58A06620D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E659AB45-FD18-4490-95FC-C1B58A06620D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E659AB45-FD18-4490-95FC-C1B58A06620D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

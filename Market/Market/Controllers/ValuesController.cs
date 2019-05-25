@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
-namespace Market.Controllers
+namespace Exchange.Controllers
 {
     public class OrdersController : ApiController
     {

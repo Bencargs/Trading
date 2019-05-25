@@ -1,15 +1,15 @@
 ﻿using Autofac;
 using Contracts.Models;
 using Contracts.Providers;
-using Market.Providers;
+using Exchange.Providers;
 using System;
 using System.Collections.Generic;
 
-namespace MarketTest
+namespace ExchangeTests
 {
     public class TestHarness
     {
-        protected Market.Services.Market Market;
+        protected Exchange.Services.Market Market;
         protected T Resolve<T>() => _container.Resolve<T>();
 
         private readonly IContainer _container;
@@ -34,7 +34,7 @@ namespace MarketTest
             var bankingProvider = Resolve<IBankingProvider>();
             var sharesProvider = Resolve<ISharesProvider>();
 
-            Market = new Market.Services.Market(
+            Market = new Exchange.Services.Market(
                 ordersProvider,
                 holdingsProvider,
                 bankingProvider,

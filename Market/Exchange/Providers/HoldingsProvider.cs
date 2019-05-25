@@ -3,7 +3,7 @@ using Contracts.Providers;
 using System;
 using System.Collections.Generic;
 
-namespace Market.Providers
+namespace Exchange.Providers
 {
     public class HoldingsProvider : IHoldingsProvider
     {

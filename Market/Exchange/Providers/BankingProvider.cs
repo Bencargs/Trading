@@ -2,7 +2,7 @@
 using Contracts.Providers;
 using System.Collections.Generic;
 
-namespace Market.Providers
+namespace Exchange.Providers
 {
     public class BankingProvider : IBankingProvider
     {

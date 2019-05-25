@@ -1,10 +1,10 @@
 using System;
 using System.Web.Http;
 using System.Web.Mvc;
-using Market.Areas.HelpPage.ModelDescriptions;
-using Market.Areas.HelpPage.Models;
+using Exchange.Areas.HelpPage.ModelDescriptions;
+using Exchange.Areas.HelpPage.Models;
 
-namespace Market.Areas.HelpPage.Controllers
+namespace Exchange.Areas.HelpPage.Controllers
 {
     /// <summary>
     /// The controller that will handle requests for the help page.

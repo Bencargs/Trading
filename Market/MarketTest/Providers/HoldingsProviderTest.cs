@@ -1,10 +1,10 @@
 ﻿using Contracts.Models;
 using Contracts.Providers;
-using Market.Providers;
+using Exchange.Providers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace MarketTest.Providers
+namespace ExchangeTests.Providers
 {
     [TestClass]
     public class HoldingsProviderTest

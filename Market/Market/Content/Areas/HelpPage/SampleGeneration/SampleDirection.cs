@@ -1,4 +1,4 @@
-namespace Market.Areas.HelpPage
+namespace Exchange.Areas.HelpPage
 {
     /// <summary>
     /// Indicates whether the sample is used for request or response

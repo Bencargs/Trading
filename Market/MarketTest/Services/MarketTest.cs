@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MarketTest.Services
+namespace ExchangeTests.Services
 {
     [TestClass]
     public class MarketTest : TestHarness

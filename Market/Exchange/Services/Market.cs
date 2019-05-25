@@ -4,7 +4,7 @@ using Contracts.Responses;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Market.Services
+namespace Exchange.Services
 {
     public class Market
     {

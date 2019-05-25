@@ -7,8 +7,8 @@
     <ProjectGuid>{F1A4F139-FC79-4AB7-A90A-A9AB8C41443D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MarketTest</RootNamespace>
-    <AssemblyName>MarketTest</AssemblyName>
+    <RootNamespace>ExchangeTests</RootNamespace>
+    <AssemblyName>ExchangeTests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -88,6 +88,10 @@
     <ProjectReference Include="..\Contracts\Contracts.csproj">
       <Project>{AFCA86C9-F21B-4273-A879-33C6AF58B3DD}</Project>
       <Name>Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Exchange\Exchange.csproj">
+      <Project>{E659AB45-FD18-4490-95FC-C1B58A06620D}</Project>
+      <Name>Exchange</Name>
     </ProjectReference>
     <ProjectReference Include="..\Market\Market.csproj">
       <Project>{B373B904-AC01-4500-9F86-EAF7B10A3D96}</Project>

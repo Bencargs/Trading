@@ -191,11 +191,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Providers\BankingProvider.cs" />
-    <Compile Include="Providers\HoldingsProvider.cs" />
-    <Compile Include="Providers\OrderProvider.cs" />
-    <Compile Include="Providers\SharesProvider.cs" />
-    <Compile Include="Services\Market.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Areas\HelpPage\HelpPage.css" />
