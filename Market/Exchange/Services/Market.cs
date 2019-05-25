@@ -27,30 +27,21 @@ namespace Exchange.Services
 
         public IResponse MarketBuy(User user, Stock stock, int quantity)
         {
-            var fills = GetOrderFills(OrderDirection.Buy, stock, quantity);
+            var fills = GetOrderFills(OrderType.Market, OrderDirection.Buy, stock, quantity);
             if (fills.Any())
             {
                 var account = _bankingProvider.GetAccount(user);
                 var cost = fills.Sum(x => x.Price * x.Quantity);
                 if (account.Balance < cost)
                     return new BuyOrderFailedResponse
-                    {
-                        Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds
-                    };
+                    { Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds };
 
-                _holdingsProvider.TransferHoldingsToUser(user, fills);
-                _bankingProvider.TransferFundsToHolders(user, fills);
-                _ordersProvider.UpdateOrders(fills);
-
-                //var minPrice = fills.Max(x => x.Price);
-                //_sharesProvider.UpdateLastPrice(stock, minPrice);
+                ExecuteBuy(user, fills);
             }
 
             var unfilled = quantity - fills.Sum(x => x.Quantity);
             if (unfilled > 0)
-            {
                 _ordersProvider.AddBuyOrder(user, stock, unfilled);
-            }
 
             return new BuyOrderResponse
             {
@@ -64,26 +55,15 @@ namespace Exchange.Services
             var holdings = _holdingsProvider.GetHolding(user, stock);
             if (holdings < quantity)
                 return new SellOrderFailedResponse
-                {
-                    Reason = SellOrderFailedResponse.FailureReason.InsufficientHoldings
-                };
+                { Reason = SellOrderFailedResponse.FailureReason.InsufficientHoldings };
 
-            var fills = GetOrderFills(OrderDirection.Sell, stock, quantity);
+            var fills = GetOrderFills(OrderType.Market, OrderDirection.Sell, stock, quantity);
             if (fills.Any())
-            {
-                _holdingsProvider.TransferHoldingsFromUser(user, fills);
-                _bankingProvider.TransferFundsFromHolders(user, fills);
-                _ordersProvider.UpdateOrders(fills);
-
-            //    var minPrice = fills.Min(x => x.Price);
-            //    _sharesProvider.UpdateLastPrice(stock, minPrice);
-            }
+                ExecuteSell(user, fills);
 
             var unfilled = quantity - fills.Sum(x => x.Quantity);
             if (unfilled > 0)
-            {
                 _ordersProvider.AddSellOrder(user, stock, unfilled);
-            }
 
             return new BuyOrderResponse
             {
@@ -92,15 +72,82 @@ namespace Exchange.Services
             };
         }
 
-        private FillDetail[] GetOrderFills(OrderDirection direction, Stock stock, int quantity)
+        public IResponse LimitBuy(User user, Stock stock, int quantity, decimal price)
         {
-            //var cost = 0m;
+            var cost = quantity * price;
+            var account = _bankingProvider.GetAccount(user);
+            if (account.Balance < cost)
+                return new BuyOrderFailedResponse
+                {
+                    Reason = BuyOrderFailedResponse.FailureReason.InsufficientFunds
+                };
+
+            var fills = GetOrderFills(OrderType.Limit, OrderDirection.Buy, stock, quantity, price);
+            if (fills.Any())
+                ExecuteBuy(user, fills);
+
+            var unfilled = quantity - fills.Sum(x => x.Quantity);
+            if (unfilled > 0)
+                _ordersProvider.AddBuyOrder(user, stock, unfilled, price);
+
+            return new BuyOrderResponse
+            {
+                Filled = fills,
+                Unfilled = unfilled
+            };
+        }
+
+        public IResponse LimitSell(User user, Stock stock, int quantity, decimal price)
+        {
+            var holdings = _holdingsProvider.GetHolding(user, stock);
+            if (holdings < quantity)
+                return new SellOrderFailedResponse
+                { Reason = SellOrderFailedResponse.FailureReason.InsufficientHoldings };
+
+            var fills = GetOrderFills(OrderType.Limit, OrderDirection.Sell, stock, quantity, price);
+            if (fills.Any())
+                ExecuteSell(user, fills);
+
+            var unfilled = quantity - fills.Sum(x => x.Quantity);
+            if (unfilled > 0)
+                _ordersProvider.AddSellOrder(user, stock, unfilled, price);
+
+            return new BuyOrderResponse
+            {
+                Filled = fills,
+                Unfilled = unfilled
+            };
+        }
+
+        private void ExecuteBuy(User user, FillDetail[] fills)
+        {
+            _holdingsProvider.TransferHoldingsToUser(user, fills);
+            _bankingProvider.TransferFundsToHolders(user, fills);
+            _ordersProvider.UpdateOrders(fills);
+            _sharesProvider.UpdateStock(fills);
+        }
+
+        private void ExecuteSell(User user, FillDetail[] fills)
+        {
+            _holdingsProvider.TransferHoldingsFromUser(user, fills);
+            _bankingProvider.TransferFundsFromHolders(user, fills);
+            _ordersProvider.UpdateOrders(fills);
+            _sharesProvider.UpdateStock(fills);
+        }
+
+        private FillDetail[] GetOrderFills(
+            OrderType type, 
+            OrderDirection direction, 
+            Stock stock, 
+            int quantity, 
+            decimal? price = null)
+        {
             var totalFilled = 0;
             var filledOrders = new List<FillDetail>();
 
-            var orders = direction == OrderDirection.Buy
-                ? _ordersProvider.GetSellOrders(stock)
-                : _ordersProvider.GetBuyOrders(stock);
+            var orders = type == OrderType.Market
+                ? GetMarketOrders(direction, stock)
+                : GetLimitOrders(direction, stock, price.Value);
 
             foreach (var o in orders)
             {
@@ -114,16 +161,30 @@ namespace Exchange.Services
                 };
                 filledOrders.Add(fill);
 
-                for (int i = 0; i < o.Quantity && totalFilled < quantity; i++)
+                for (int i = 0; i < o.Quantity; i++)
                 {
-                    //if (totalFilled >= quantity)
-                    //    return filledOrders.ToArray();
+                    if (totalFilled >= quantity)
+                        return filledOrders.ToArray();
 
                     fill.Quantity++;
                     totalFilled++;
                 }
             }
             return filledOrders.ToArray();
+        }
+
+        private Order[] GetMarketOrders(OrderDirection direction, Stock stock)
+        {
+            return direction == OrderDirection.Buy
+                ? _ordersProvider.GetSellOrders(stock)
+                : _ordersProvider.GetBuyOrders(stock);
+        }
+
+        private Order[] GetLimitOrders(OrderDirection direction, Stock stock, decimal price)
+        {
+            return direction == OrderDirection.Buy
+                ? _ordersProvider.GetSellOrders(stock).Where(x => (x.Price ?? _sharesProvider.GetLastPrice(stock)) <= price).ToArray()
+                : _ordersProvider.GetBuyOrders(stock).Where(x => (x.Price ?? _sharesProvider.GetLastPrice(stock)) >= price).ToArray();
         }
     }
 }

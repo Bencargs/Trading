@@ -6,6 +6,7 @@ namespace Contracts.Providers
     {
         void AddStock(Stock stock, decimal price);
         decimal GetLastPrice(Stock stock);
-        void UpdateLastPrice(Stock stock, decimal price);
+        Trade[] GetTrades(Stock stock);
+        void UpdateStock(FillDetail[] fills);
     }
 }

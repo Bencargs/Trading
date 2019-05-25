@@ -11,7 +11,7 @@ namespace Exchange.Providers
         private Dictionary<Stock, List<Order>> _sellOrders = new Dictionary<Stock, List<Order>>();
         private Dictionary<Stock, List<Order>> _buyOrders = new Dictionary<Stock, List<Order>>();
 
-        public Order AddBuyOrder(User user, Stock stock, int quantity)
+        public Order AddBuyOrder(User user, Stock stock, int quantity, decimal? price = null)
         {
             var order = new Order
             {
@@ -19,9 +19,9 @@ namespace Exchange.Providers
                 Owner = user,
                 Stock = stock,
                 Direction = OrderDirection.Buy,
-                Type = OrderType.Market,
+                Type = price == null ? OrderType.Market : OrderType.Limit,
                 Quantity = quantity,
-                Price = null
+                Price = price
             };
 
             if (_buyOrders.ContainsKey(stock))
@@ -32,7 +32,7 @@ namespace Exchange.Providers
             return order;
         }
 
-        public Order AddSellOrder(User user, Stock stock, int quantity)
+        public Order AddSellOrder(User user, Stock stock, int quantity, decimal? price = null)
         {
             var order = new Order
             {
@@ -40,9 +40,9 @@ namespace Exchange.Providers
                 Owner = user,
                 Stock = stock,
                 Direction = OrderDirection.Sell,
-                Type = OrderType.Market,
+                Type = price == null ? OrderType.Market : OrderType.Limit,
                 Quantity = quantity,
-                Price = null
+                Price = price
             };
 
             if (_sellOrders.ContainsKey(stock))
