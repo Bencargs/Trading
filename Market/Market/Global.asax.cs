@@ -23,7 +23,7 @@ namespace Exchange
 
             var builder = new ContainerBuilder();
             builder.RegisterControllers(typeof(WebApiApplication).Assembly);
-            builder.RegisterAssemblyTypes(typeof(Contracts.Providers.IAuthenticationProvider).Assembly);
+            builder.RegisterAssemblyTypes(typeof(Contracts.Providers.IAccountProvider).Assembly);
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }

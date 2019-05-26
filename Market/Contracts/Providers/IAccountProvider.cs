@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Contracts.Providers
 {
-    public interface IAuthenticationProvider
+    public interface IAccountProvider
     {
-        User GetUser(string username);
+        Guid RegisterUser(string username);
+        User GetUser(Guid userId);
     }
 }

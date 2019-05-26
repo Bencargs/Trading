@@ -71,6 +71,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Providers\AccountProviderTest.cs" />
     <Compile Include="Services\LimitTest.cs" />
     <Compile Include="TestHarness.cs" />
     <Compile Include="Providers\BankingProviderTest.cs" />
