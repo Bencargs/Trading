@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Contracts.Models;
 using Contracts.Providers;
+using Exchange;
 using Exchange.Providers;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ExchangeTests
         {
             var builder = new ContainerBuilder();
 
+            builder.RegisterType<DateTimeSource>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<BankingProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HoldingsProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<OrderProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();

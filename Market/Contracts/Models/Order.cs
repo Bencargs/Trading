@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace Contracts.Models
 {
@@ -9,6 +6,7 @@ namespace Contracts.Models
     {
         public Guid OrderId { get; set; }
         public User Owner { get; set; }
+        public DateTime Timestamp { get; set; }
         public Stock Stock { get; set; }
         public OrderDirection Direction { get; set; }
         public OrderType Type { get; set; }

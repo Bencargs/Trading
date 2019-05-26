@@ -2,7 +2,9 @@
 using System.Linq;
 using Contracts.Models;
 using Contracts.Providers;
+using Exchange;
 using Exchange.Providers;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ExchangeTests.Providers
@@ -16,7 +18,7 @@ namespace ExchangeTests.Providers
 
         public OrderProviderTest()
         {
-            _provider = new OrderProvider();
+            _provider = new OrderProvider(new DateTimeSource());
             _stock = new Stock
             {
                 Ticker = "ABC"
@@ -119,6 +121,24 @@ namespace ExchangeTests.Providers
             var actual = _provider.GetSellOrders(_stock);
 
             Assert.AreEqual(0, actual.Sum(x => x.Quantity));
+        }
+
+        [TestMethod]
+        public void GetBuyOrdersTest_OrderedByTimestamp()
+        {
+            var user1 = new User { UserId = Guid.NewGuid() };
+            var user2 = new User { UserId = Guid.NewGuid() };
+            _provider.AddBuyOrder(user1, _stock, 1, 1m);
+            _provider.AddBuyOrder(user2, _stock, 1, 1m);
+
+            var actual = _provider.GetBuyOrders(_stock);
+
+            actual.Should().BeEquivalentTo(
+                new[]
+                {
+                    new { Owner = user1 },
+                    new { Owner = user2 }
+                });
         }
     }
 }

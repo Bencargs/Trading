@@ -1,4 +1,5 @@
-﻿using Contracts.Models;
+﻿using Contracts;
+using Contracts.Models;
 using Contracts.Providers;
 using System;
 using System.Collections.Generic;
@@ -8,8 +9,14 @@ namespace Exchange.Providers
 {
     public class OrderProvider : IOrderProvider
     {
+        private readonly IDateTimeSource _dateTimeSource;
         private Dictionary<Stock, List<Order>> _sellOrders = new Dictionary<Stock, List<Order>>();
         private Dictionary<Stock, List<Order>> _buyOrders = new Dictionary<Stock, List<Order>>();
+
+        public OrderProvider(IDateTimeSource dateTimeSource)
+        {
+            _dateTimeSource = dateTimeSource;
+        }
 
         public Order AddBuyOrder(User user, Stock stock, int quantity, decimal? price = null)
         {
@@ -17,6 +24,7 @@ namespace Exchange.Providers
             {
                 OrderId = Guid.NewGuid(),
                 Owner = user,
+                Timestamp = _dateTimeSource.Now,
                 Stock = stock,
                 Direction = OrderDirection.Buy,
                 Type = price == null ? OrderType.Market : OrderType.Limit,
@@ -38,6 +46,7 @@ namespace Exchange.Providers
             {
                 OrderId = Guid.NewGuid(),
                 Owner = user,
+                Timestamp = _dateTimeSource.Now,
                 Stock = stock,
                 Direction = OrderDirection.Sell,
                 Type = price == null ? OrderType.Market : OrderType.Limit,
@@ -56,14 +65,14 @@ namespace Exchange.Providers
         public Order[] GetBuyOrders(Stock stock)
         {
             return _buyOrders.TryGetValue(stock, out List<Order> orders)
-                ? orders.OrderByDescending(x => x.Price).ToArray()
+                ? orders.OrderByDescending(x => x.Price).ThenBy(x => x.Timestamp).ToArray()
                 : new Order[0];
         }
 
         public Order[] GetSellOrders(Stock stock)
         {
             return _sellOrders.TryGetValue(stock, out List<Order> orders)
-                ? orders.OrderBy(x => x.Price).ToArray()
+                ? orders.OrderBy(x => x.Price).ThenBy(x => x.Timestamp).ToArray()
                 : new Order[0];
         }
 
