@@ -5,13 +5,13 @@ namespace Exchange
 {
     public class DateTimeSource : IDateTimeSource
     {
-        private readonly TimeSpan _offset = new TimeSpan(0);
+        private TimeSpan _offset = new TimeSpan(0);
 
         public DateTime Now => DateTime.Now + _offset;
 
         public void Fastforward(TimeSpan timespan)
         {
-            _offset.Add(timespan);
+            _offset = timespan;
         }
     }
 }

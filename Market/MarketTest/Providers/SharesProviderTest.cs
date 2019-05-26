@@ -1,5 +1,6 @@
 ﻿using Contracts.Models;
 using Contracts.Providers;
+using Exchange;
 using Exchange.Providers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +11,7 @@ namespace ExchangeTests.Providers
     public class SharesProviderTest
     {
         private readonly Stock _stock = new Stock { Ticker = "ABC" };
-        private readonly ISharesProvider _provider = new SharesProvider();
+        private readonly ISharesProvider _provider = new SharesProvider(new DateTimeSource());
 
         [TestMethod]
         public void GetStockTest()

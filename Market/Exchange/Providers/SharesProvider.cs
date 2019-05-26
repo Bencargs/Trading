@@ -1,4 +1,5 @@
-﻿using Contracts.Models;
+﻿using Contracts;
+using Contracts.Models;
 using Contracts.Providers;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,14 @@ namespace Exchange.Providers
 {
     public class SharesProvider : ISharesProvider
     {
+        private readonly IDateTimeSource _dateTimeSource;
         private Dictionary<Stock, decimal> _shares = new Dictionary<Stock, decimal>();
         private Dictionary<Stock, List<Trade>> _trades = new Dictionary<Stock, List<Trade>>();
+
+        public SharesProvider(IDateTimeSource dateTimeSource)
+        {
+            _dateTimeSource = dateTimeSource;
+        }
 
         public void AddStock(Stock stock, decimal price)
         {
@@ -36,6 +43,7 @@ namespace Exchange.Providers
                 _shares[f.Key] = price;
                 _trades[f.Key].Add(new Trade
                 {
+                    Timestamp = _dateTimeSource.Now,
                     Price = price,
                     Volume = volume
                 });

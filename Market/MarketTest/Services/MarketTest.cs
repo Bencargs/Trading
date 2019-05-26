@@ -1,4 +1,5 @@
-﻿using Contracts.Models;
+﻿using Contracts;
+using Contracts.Models;
 using Contracts.Providers;
 using Contracts.Responses;
 using FluentAssertions;
@@ -266,6 +267,26 @@ namespace ExchangeTests.Services
             Market.MarketSell(_user, _stock, 10);
 
             Assert.AreEqual(90, Resolve<IOrderProvider>().GetBuyOrders(_stock).Sum(x => x.Quantity));
+        }
+
+        [TestMethod]
+        public void MarketBuyTest_OrdersTimestamped()
+        {
+            RegisterShares(_stock, 10m);
+            RegisterUser(_user, 100m);
+
+            var now = Resolve<IDateTimeSource>().Now;
+            Market.MarketBuy(_user, _stock, 1);
+            Resolve<IDateTimeSource>().Fastforward(TimeSpan.FromSeconds(5));
+            Market.MarketBuy(_user, _stock, 1);
+
+            var orders = Resolve<IOrderProvider>().GetBuyOrders(_stock);
+            orders.Select(x => x.Timestamp.ToString("hh:mm:ss")).Should().BeEquivalentTo(
+                new[]
+                {
+                    now.ToString("hh:mm:ss"),
+                    now.AddSeconds(5).ToString("hh:mm:ss")
+                });
         }
     }
 }
