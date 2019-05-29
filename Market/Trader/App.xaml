@@ -1,0 +1,9 @@
+﻿<Application x:Class="Trader.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Trader.ViewModels"
+             StartupUri="Views/LoginView.xaml">
+    <Application.Resources>
+        <local:LoginViewModel x:Key="LoginViewModel" />
+    </Application.Resources>
+</Application>
