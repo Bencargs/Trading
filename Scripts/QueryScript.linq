@@ -24,21 +24,25 @@ public class Client
     private readonly string _url = @"localhost";
     private readonly int _port = 52179;
 
-    public Client()
-    {
-	
-    }
-	
 	public void GetSharePrice()
 	{
-		var obj = new PriceRequest
+		var obj = new Stock { Ticker = "ABC" };
+	    var request = CreatePostRequest("shares/price", obj);
+		var prices = GetReply<Trade[]>(request);
+		prices.Chart(x => x.Timestamp, y => y.Price, LINQPad.Util.SeriesType.Line).Dump();
+
+		var obj2 = new Order
 		{
-			From = DateTime.Now,
-			Stock = new Stock { Ticker = "ABC" }
-		};	
-	    byte[] objBytes = Encoding.UTF8.GetBytes(obj.ToString());
+		};
+		var request2 = CreatePostRequest("shares/buy", obj2);
+		var reply = GetReply<FillDetail>(request2);
+		reply.Dump();
+	}
 	
-	    string URI = $"http://{_url}:{_port}/api/shareprice";
+	private HttpWebRequest CreatePostRequest(string endpoint, object obj)
+	{
+		var objBytes = Encoding.UTF8.GetBytes(obj.ToString());
+	    string URI = $"http://{_url}:{_port}/api/{endpoint}";
 	    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(new Uri(URI, UriKind.RelativeOrAbsolute));
 	    request.Method = "POST";
 	    request.ContentType = "application/x-www-form-urlencoded";
@@ -49,7 +53,12 @@ public class Client
 	    {
 	        stream.Write(objBytes, 0, objBytes.Length);
 	    }
+		
+		return request;
+	}
 	
+	private T GetReply<T>(HttpWebRequest request)
+	{
 		var jsonReply = "";
 	    using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
 	    using (Stream stream = response.GetResponseStream())
@@ -58,10 +67,7 @@ public class Client
 	        jsonReply = reader.ReadToEnd();
 	    }
 		
-		var prices = JsonConvert.DeserializeObject<Trade[]>(jsonReply); 
-		
-		var i = 0;
-		prices.Chart(x => ++i /*x.Timestamp*/, y => y.Price, LINQPad.Util.SeriesType.Line).Dump();
+		return JsonConvert.DeserializeObject<T>(jsonReply); 
 	}
 	
 	public class Trade
@@ -81,59 +87,10 @@ public class Client
 	{
 		public string Ticker {get; set;}
 	}
-
-//    public HashSet<string> GetStocks()
-//    {
-//        var requestUrl = $"http://{_url}:{_port}/api/orders";
-//        var response = GetRequest(requestUrl);
-//        var stocks = JsonConvert.DeserializeObject<HashSet<string>>(response);
-//        return stocks;
-//    }
-//	
-//	public void GetS(string symbol)
-//	{
-//		var requestUrl = $"http://{_url}:{_port}/api/orders/{symbol}";
-//        var response = GetRequest(requestUrl);
-//		response.Dump();
-//        var reply = JsonConvert.DeserializeObject<decimal>(response);
-//        reply.Dump();
-//	}
 	
-//	public string PostOrder(string ticker, decimal price)
-//    {
-//        //replace with httpClient
-//        var requestUrl = $"http://{_url}:{_port}/api/orders";
-//        var request = (HttpWebRequest)WebRequest.Create(requestUrl);
-//        request.Method = "POST";
-//        request.ContentType = "application/x-www-form-urlencoded";
-//        
-//		//var data = Encoding.ASCII.GetBytes($"symbol={ticker}:{price}");
-//		var order = new Order {Symbol = ticker, Price = price };
-//		var data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(order));
-//		request.ContentLength = data.Length;
-//		using (var stream = request.GetRequestStream())
-//		{
-//		    stream.Write(data, 0, data.Length);
-//		}
-//
-//        var response = request.GetResponse() as HttpWebResponse;
-//        using (var stream = response.GetResponseStream())
-//        {
-//			response.StatusDescription.Dump();
-//            return new StreamReader(response.GetResponseStream()).ReadToEnd();
-//        }
-//    }
-
-//    private string GetRequest(string requestUrl)
-//    {
-//        var request = WebRequest.Create(requestUrl) as HttpWebRequest;
-//        var response = request.GetResponse() as HttpWebResponse;
-//
-//        using (var stream = response.GetResponseStream())
-//        {
-//            return new StreamReader(response.GetResponseStream()).ReadToEnd();
-//        }
-//    }
+	public class FillDetail
+    {
+    }
 }
 
 // Define other methods and classes here
