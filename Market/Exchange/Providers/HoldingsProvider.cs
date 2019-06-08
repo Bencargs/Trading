@@ -20,6 +20,11 @@ namespace Exchange.Providers
             _holdings[user].Add(stock, quantity);
         }
 
+        public Dictionary<Stock, int> GetHoldings(User user)
+        {
+            return _holdings[user];
+        }
+
         public int GetHolding(User user, Stock stock)
         {
             _holdings[user].TryGetValue(stock, out int stocksHeld);

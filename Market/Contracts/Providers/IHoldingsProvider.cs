@@ -12,6 +12,7 @@ namespace Contracts.Providers
         void CreateUser(User user);
         void AddHolding(User user, Stock stock, int quantity);
         int GetHolding(User user, Stock stock);
+        Dictionary<Stock, int> GetHoldings(User user);
 
         /// <summary>
         /// Move all holdings in orders to users name

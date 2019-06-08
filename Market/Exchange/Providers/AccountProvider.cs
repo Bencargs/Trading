@@ -1,5 +1,4 @@
-﻿using Contracts;
-using Contracts.Models;
+﻿using Contracts.Models;
 using Contracts.Providers;
 using System;
 using System.Collections.Generic;
@@ -35,7 +34,8 @@ namespace Exchange.Providers
 
         public User GetUser(Guid userId)
         {
-            return _users[userId];
+            _users.TryGetValue(userId, out User user);
+            return user;
         }
     }
 }

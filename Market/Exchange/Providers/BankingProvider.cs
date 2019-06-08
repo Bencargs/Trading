@@ -25,7 +25,8 @@ namespace Exchange.Providers
 
         public BankAccount GetAccount(User user)
         {
-            return _accounts[user];
+            _accounts.TryGetValue(user, out BankAccount account);
+            return account;
         }
 
         public void TransferFundsToHolders(User user, FillDetail[] fills)

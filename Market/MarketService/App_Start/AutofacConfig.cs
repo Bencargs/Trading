@@ -27,12 +27,14 @@ namespace MarketService
             builder.RegisterWebApiFilterProvider(GlobalConfiguration.Configuration);
 
             builder.RegisterType<DateTimeSource>().AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<AccountProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<BankingProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HoldingsProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<OrderProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<SharesProvider>().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             builder.RegisterType<Market>().InstancePerRequest();
+            builder.RegisterType<Account>().InstancePerRequest();
 
             Container = builder.Build();
 

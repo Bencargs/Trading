@@ -13,15 +13,18 @@ namespace MarketService.Controllers
     public class SharesController : ApiController
     {
         private readonly Market _market;
+        private readonly Account _accounts;
         private readonly ISharesProvider _sharesProvider;
         private readonly IOrderProvider _ordersProvider;
 
         public SharesController(
             Market market,
+            Account accounts,
             ISharesProvider sharesProvider,
             IOrderProvider ordersProvider)
         {
             _market = market;
+            _accounts = accounts;
             _sharesProvider = sharesProvider;
             _ordersProvider = ordersProvider;
         }
@@ -37,6 +40,11 @@ namespace MarketService.Controllers
         [Route("Trades")]
         public IEnumerable<Trade> GetTrades([FromBody]Stock stock)
         {
+            var user = _accounts.GetUser(Request.Headers);
+            if (user.FailureReason != GetUserResponse.Reason.None)
+                return new Trade[0];
+
+
             return _sharesProvider.GetTrades(stock);
         }
         
@@ -44,6 +52,10 @@ namespace MarketService.Controllers
         [Route("Buy")]
         public IResponse Buy([FromBody]Order order)
         {
+            var user = _accounts.GetUser(Request.Headers);
+            if (user.FailureReason != GetUserResponse.Reason.None)
+                return null;
+
             var reply = order.Type == OrderType.Market
                 ? _market.MarketBuy(order.Owner, order.Stock, order.Quantity)
                 : _market.LimitBuy(order.Owner, order.Stock, order.Quantity, order.Price ?? 0m);
@@ -54,6 +66,10 @@ namespace MarketService.Controllers
         [Route("Sell")]
         public IResponse Sell([FromBody]Order order)
         {
+            var user = _accounts.GetUser(Request.Headers);
+            if (user.FailureReason != GetUserResponse.Reason.None)
+                return null;
+
             var reply = order.Type == OrderType.Market
                 ? _market.MarketSell(order.Owner, order.Stock, order.Quantity)
                 : _market.LimitSell(order.Owner, order.Stock, order.Quantity, order.Price ?? 0m);

@@ -4,4 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Models\GetUserResponsecs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Responses\GetUserResponse.cs" />
+  </ItemGroup>
+
 </Project>
