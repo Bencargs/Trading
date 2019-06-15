@@ -27,7 +27,10 @@ namespace Exchange.Services
             {
                 var user = _accountProvider.GetUser(userId);
                 if (user == null)
+                {
+                    reply.User = new User { UserId = userId };
                     reply.FailureReason = GetUserResponse.Reason.NotFound;
+                }
                 else
                     reply.User = user;
             }
@@ -37,11 +40,11 @@ namespace Exchange.Services
 
         public Guid? RegisterUser(HttpHeaders header, string username)
         {
-            var user = GetUser(header);
-            if (user.FailureReason != GetUserResponse.Reason.NotFound)
+            var response = GetUser(header);
+            if (response.FailureReason != GetUserResponse.Reason.NotFound)
                 return null;
 
-            var userId = _accountProvider.RegisterUser(username);
+            var userId = _accountProvider.RegisterUser(response.User.UserId, username);
             if (userId == Guid.Empty)
                 return null;
 

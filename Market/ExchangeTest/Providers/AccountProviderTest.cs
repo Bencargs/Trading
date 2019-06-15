@@ -3,6 +3,7 @@ using Contracts.Providers;
 using Exchange.Providers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace ExchangeTests.Providers
 {
@@ -29,10 +30,12 @@ namespace ExchangeTests.Providers
         [TestMethod]
         public void CreateTest()
         {
-            var userId = _provider.RegisterUser("TestUser");
+            var userId = Guid.NewGuid();
+            var response = _provider.RegisterUser(userId, "TestUser");
 
             var user = _provider.GetUser(userId);
 
+            Assert.AreEqual(response, userId);
             user.Should().BeEquivalentTo(
                 new
                 {

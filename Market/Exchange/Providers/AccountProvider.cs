@@ -19,11 +19,11 @@ namespace Exchange.Providers
             _holdingsProvider = holdingsProvider;
         }
 
-        public Guid RegisterUser(string username)
+        public Guid RegisterUser(Guid userId, string username)
         {
             var user = new User
             {
-                UserId = Guid.NewGuid(),
+                UserId = userId,
                 Username = username
             };
             _users.Add(user.UserId, user);
