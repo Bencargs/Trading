@@ -1,5 +1,4 @@
-﻿using Contracts;
-using Contracts.Models;
+﻿using Contracts.Models;
 using Contracts.Providers;
 using Contracts.Responses;
 using System.Collections.Generic;

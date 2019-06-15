@@ -38,7 +38,7 @@ namespace Exchange.Services
         public Guid? RegisterUser(HttpHeaders header, string username)
         {
             var user = GetUser(header);
-            if (user.FailureReason != GetUserResponse.Reason.None)
+            if (user.FailureReason != GetUserResponse.Reason.NotFound)
                 return null;
 
             var userId = _accountProvider.RegisterUser(username);
